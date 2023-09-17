@@ -7,10 +7,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setSelectedPlace } from '../modules/map/redux/slices/selectedPlace';
 import { connect } from 'react-redux';
 
-const PlacesAutocomplete = ({selectedPlace, setSelectedPlace, getLatlng}) => {
+const PlacesAutocomplete = () => {
 
-    // const selectedPlace = useSelector(state => state.selectedPlace.address)
-    // const dispatch = useDispatch();
+    const selectedPlace = useSelector(state => state.selectedPlace.address)
+    const dispatch = useDispatch();
     // console.log("===========selectedPlace====>", selectedPlace)
 
     // useEffect(() => {
@@ -27,17 +27,17 @@ const PlacesAutocomplete = ({selectedPlace, setSelectedPlace, getLatlng}) => {
             <GooglePlacesAutocomplete
                 textInputProps={{
                  value : selectedPlace,
-                 onChangeText : (text) => setSelectedPlace(text)
+                 onChangeText : (text) => dispatch(setSelectedPlace(text))
                 }}
                 placeholder='Search'
                 fetchDetails={true}
                 onPress={(data, details = null) => {
                     console.log("--------data from googleautocomplete-------->", data)
-                    getLatlng({
+                    dispatch(getLatlng({
                         latitude: details?.geometry?.location?.lat,
                         longitude: details?.geometry?.location?.lng,
-                    });
-                    setSelectedPlace(data.description)
+                    }));
+                    dispatch(setSelectedPlace(data.description))
                 }}
                 query={{
                     key: apiClient.mapApiKey,
@@ -51,19 +51,19 @@ const PlacesAutocomplete = ({selectedPlace, setSelectedPlace, getLatlng}) => {
     )
 }
 
-const mapStateToProps = (state, props) => {
-    return {
-      selectedPlace : state.selectedPlace.address,
-    };
+// const mapStateToProps = (state, props) => {
+//     return {
+//       selectedPlace : state.selectedPlace.address,
+//     };
   
-  };
+//   };
 
-  const mapDispatchToProps = (dispatch) => ({
-    setSelectedPlace : (text) => dispatch(setSelectedPlace(text)),
-    getLatlng : (data) => dispatch(getLatlng(data)),
-  });
+//   const mapDispatchToProps = (dispatch) => ({
+//     setSelectedPlace : (text) => dispatch(setSelectedPlace(text)),
+//     getLatlng : (data) => dispatch(getLatlng(data)),
+//   });
 
-export default connect(mapStateToProps, mapDispatchToProps)(PlacesAutocomplete)
+export default PlacesAutocomplete;
 
 const styles = StyleSheet.create({
     searchAddress: {
