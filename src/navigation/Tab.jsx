@@ -21,7 +21,7 @@ const TabNavigation = () => {
         <NavigationContainer>
      <Tab.Navigator
      screenOptions={({ route }) => ({
-      unmountOnBlur: true,
+      // unmountOnBlur: true,
       tabBarIcon: ({ color, size }) => {
         switch(route.name){
           case "Map" :
