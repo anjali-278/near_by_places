@@ -1,31 +1,27 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import React from 'react';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const GetStars = ({ rating }) => {
-  rating = Math.round(rating * 2) / 2;
+  const roundedRating = Math.round(rating * 2) / 2;
+  const stars = [];
 
-  let stars = [];
-
-  for (var i = rating; i >= 1; i--)
-    stars.push(<MaterialIcons name="star" size={21} color="#FFA000" />);
-  if (i == .5) stars.push(<MaterialIcons name="star-half" size={21} color="#FFA000" />);
-  for (let i = (5 - rating); i >= 1; i--)
-    stars.push(<MaterialIcons name="star-outline" size={21} color="#FFA000" />);
-
-
+  for (let i = 1; i <= 5; i++) {
+    if (i <= roundedRating) {
+      stars.push(<MaterialIcons key={i} name="star" size={21} color="#FFA000" />);
+    } else if (i === Math.ceil(roundedRating) && roundedRating % 1 !== 0) {
+      stars.push(<MaterialIcons key={i} name="star-half" size={21} color="#FFA000" />);
+    } else {
+      stars.push(<MaterialIcons key={i} name="star-outline" size={21} color="#FFA000" />);
+    }
+  }
 
   return (
-    <View style={styles.container}>
-      {stars.map((star, i) => <Text key={String(i)}>{star}</Text>)}
+    <View style={{ flexDirection: 'row' }}>
+      {stars}
     </View>
   );
-}
+};
 
-export default GetStars
+export default GetStars;
 
-const styles = StyleSheet.create({
-  container : {
-    flexDirection : "row"
-  }
-})

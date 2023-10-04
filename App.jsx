@@ -1,18 +1,14 @@
-import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import React, {useEffect} from 'react';
 import {enableLatestRenderer} from 'react-native-maps';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 
 import { login, logout } from './src/modules/login/redux/authSlice';
-
 import { Login } from './src/modules';
 import { Loader } from './src/components';
 
 import {useDispatch, useSelector, Provider } from 'react-redux';
-
 import { PersistGate } from 'redux-persist/integration/react';
-
 import store from './src/redux/store';
 import { persistor } from './src/redux/store';
 
@@ -24,10 +20,6 @@ const App = () => {
 
   const dispatch = useDispatch();
   const token = useSelector((state) => state.auth.token);
-
-  const selectedPlace = useSelector(s => s.selectedPlace.address);
-
-  console.log(selectedPlace, "inside app component")
 
   useEffect(() => {
     const checkToken = async () =>{
@@ -44,7 +36,7 @@ const App = () => {
     };
     checkToken();
   },[])
-
+  
   enableLatestRenderer();
   return (
     <>
@@ -65,7 +57,3 @@ export default () => (
    </PersistGate>
   </Provider>
 )
-
-const styles = StyleSheet.create({
-  
-})

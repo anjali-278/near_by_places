@@ -12,15 +12,15 @@ import { login } from './redux/authSlice';
 
 const Login = () => {
 
+  const emailRegex = /^([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/;
   const dispatch = useDispatch();
-
   const { email, password } = useSelector(state => state.userInfo)
 
 
   const [enable, setEnable] = useState(false)
 
   const verify = () => {
-    if (email && email.includes("@")
+    if (emailRegex.test(email)
       && password && password.length > 5) {
       setEnable(true);
     }

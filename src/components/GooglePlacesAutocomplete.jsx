@@ -5,57 +5,74 @@ import apiClient from '../utils/apiClient';
 import { getLatlng } from '../modules/map/redux/slices/latlng';
 import { useDispatch, useSelector } from 'react-redux';
 import { setSelectedPlace } from '../modules/map/redux/slices/selectedPlace';
-import { connect } from 'react-redux';
 
 const PlacesAutocomplete = () => {
 
-    const selectedPlace = useSelector(state => state.selectedPlace.address)
-    const dispatch = useDispatch();
-    // console.log("===========selectedPlace====>", selectedPlace)
+	const [isInputFocused, setInputFocused] = useState(false);
 
-    // useEffect(() => {
-    //     if (selectedPlace) {
-    //         dispatch(setSelectedPlace(selectedPlace.description));
-    //     } else {
-    //         dispatch(setSelectedPlace(''));
-    //     }
-    //   }, [selectedPlace]);  
+	const selectedPlace = useSelector(state => state.selectedPlace.address);
+	const location = useSelector(state => state.location.location);
+
+	const dispatch = useDispatch();
 
 
-    return (
-        <View style={styles.searchAddress}>
-            <GooglePlacesAutocomplete
-                textInputProps={{
-                 value : selectedPlace,
-                 onChangeText : (text) => dispatch(setSelectedPlace(text))
-                }}
-                placeholder='Search'
-                fetchDetails={true}
-                onPress={(data, details = null) => {
-                    console.log("--------data from googleautocomplete-------->", data)
-                    dispatch(getLatlng({
-                        latitude: details?.geometry?.location?.lat,
-                        longitude: details?.geometry?.location?.lng,
-                    }));
-                    dispatch(setSelectedPlace(data.description))
-                }}
-                query={{
-                    key: apiClient.mapApiKey,
-                    language: 'en',
-                }}
-                // currentAddress={selectedPlace}
+	const handleChange = (text) => {
+		if (isInputFocused) {
+			dispatch(setSelectedPlace(text));
+		}
+	}
 
-            // value = {selectedPlace.description}
-            />
-        </View>
-    )
+	const handleBlur = () => {
+		if (!selectedPlace) {
+			dispatch(getLatlng({
+				latitude: location?.coords?.latitude || 17.387140,
+				longitude: location?.coords?.longitude || 78.491684,
+			}))
+		}
+	}
+
+	const handleSelect = (latitude, longitude, description) => {
+		dispatch(getLatlng({
+			latitude: latitude,
+			longitude: longitude,
+		}));
+		{
+			description ?
+				dispatch(setSelectedPlace(description)) :
+				null
+		}
+	}
+
+
+	return (
+		<View style={styles.searchAddress}>
+			<GooglePlacesAutocomplete
+				textInputProps={{
+					value: selectedPlace,
+					onChangeText: (text) => { handleChange(text) },
+					onFocus: () => setInputFocused(true),
+					onBlur: () => handleBlur(),
+				}}
+				placeholder='Search'
+				fetchDetails={true}
+				onPress={(data, details = null) => {
+					handleSelect(details?.geometry?.location?.lat, details?.geometry?.location?.lng, data?.description)
+				}}
+				query={{
+					key: apiClient.mapApiKey,
+					language: 'en',
+				}}
+				minLength={3}
+			/>
+		</View>
+	)
 }
 
 // const mapStateToProps = (state, props) => {
 //     return {
 //       selectedPlace : state.selectedPlace.address,
 //     };
-  
+
 //   };
 
 //   const mapDispatchToProps = (dispatch) => ({
@@ -66,14 +83,14 @@ const PlacesAutocomplete = () => {
 export default PlacesAutocomplete;
 
 const styles = StyleSheet.create({
-    searchAddress: {
-        zIndex: 5,
-        width: "96%",
-        position: "absolute",
-        top: 90,
-        marginHorizontal: 6,
-        backgroundColor: "#FFFFFF",
-        elevation: 3,
-        borderRadius: 4,
-    },
+	searchAddress: {
+		zIndex: 5,
+		width: "96%",
+		position: "absolute",
+		top: 90,
+		marginHorizontal: 6,
+		backgroundColor: "#FFFFFF",
+		elevation: 3,
+		borderRadius: 4,
+	},
 })

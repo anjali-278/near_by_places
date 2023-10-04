@@ -1,99 +1,134 @@
-import { StyleSheet, Text, View, Image, Pressable } from 'react-native';
-import React, { useState } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  Pressable,
+  Modal,
+  Dimensions,
+  TouchableWithoutFeedback,
+} from 'react-native';
+
+import React, { useMemo, useState } from 'react';
 import GetStars from './GetStars';
 import placeColors from '../constants/placeColor';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import Toast from 'react-native-toast-message';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-import ModalComponent from './ModalComponent';
+import { showModal } from '../modules/map/redux/slices/modalVisible';
+import { setDraftValue } from '../modules/messages/redux/messageDraftSlice';
+import { useDispatch } from 'react-redux';
+
+
+const { width, height } = Dimensions.get("window");
+
+
 
 const PlaceCard = ({ place }) => {
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [username, setUsername] = useState("");
-  const [message, setMessage] = useState("");
+  const [showDetails, setShowDetails] = useState(false);
 
-  const handleUserPressed = (name) => {
-    setModalVisible(true);
-    setUsername(name);
-  }
-
-  const handleMessageCancel = () => {
-    setModalVisible(false);
-    setUsername("");
-    setMessage("")
-  }
-
-  const handleMessageSend = () => {
-    if (message) {
-      setModalVisible(false)
-      setUsername("");
-      Toast.show({
-        type: "success",
-        text1: "Sent",
-        text2: `Message sent to ${username} successfully`
-      })
-      setMessage("");
-    }
-    else {
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Please type a Message"
-      })
-    }
-  }
-
-
-  return (
-    <Pressable onPress={() => place?.types.includes("user") && handleUserPressed(place?.name)}>
-      <View style={[styles.container,
+  const dispatch = useDispatch();
+  const handleUserPressed = (receiverData) => {
+    dispatch(showModal());
+    dispatch(setDraftValue(
       {
-        borderLeftColor: place?.types.includes("hospital") ?
-          placeColors.hospital : place?.types.includes("police") ?
-            placeColors.police : placeColors.users
-      }]}>
-        <View style={styles.placeName}>
-          {place?.icon ?
-            <Image style={styles.icon} source={{ uri: place?.icon }} /> :
-            <AntDesign name="user" size={22} />
-          }
-          <Text style={styles.name}>{place?.name}</Text>
-        </View>
-        <View style={styles.rating}>
-          {
-            place?.rating ?
-              <>
-                <Text style={styles.rating}>{place?.rating?.toFixed(1)}</Text>
-                <GetStars rating={place?.rating} />
-                <Text style={styles.voter}>({place?.user_ratings_total} ratings)</Text>
-              </>
-              :
-              <Text>No Ratings</Text>
-          }
-        </View>
-        <Text style={styles.type}>{place?.types[0]}</Text>
-        <Text style={styles.vicinity}>{place?.vicinity}</Text>
-        {
-          place?.opening_hours &&
-          <Text style={[{ color: place?.opening_hours?.open_now ? "#2E8B57" : "#E97451" }, styles.open]}>{place?.opening_hours?.open_now ? "Open now" : "Closed"}</Text>
+        receiver_id: receiverData?.id || "receiver_id",
+        receiver_name: receiverData?.name || "name",
+        receiver_location: {
+          latitude: receiverData?.lat || 0,
+          longitude: receiverData?.lng || 0,
+          address: receiverData?.vicinity || "",
         }
-      </View>
-      <ModalComponent
-        modalVisible={modalVisible}
-        message={message}
-        setMessage={setMessage}
-        username={username}
-        handleMessageCancel={handleMessageCancel}
-        handleMessageSend={handleMessageSend}
-      />
-    </Pressable>
+      }
+    ))
+  }
+
+  const handlePlacePressed = () => {
+    setShowDetails(true);
+  }
+
+  const openStyle = {
+    color: place?.opening_hours?.open_now ? "#2E8B57" : "#E97451",
+  };
+
+  const borderLeft = {
+    borderLeftWidth: 3,
+    borderLeftColor: place?.types.includes("hospital") ?
+      placeColors.hospital : place?.types.includes("police") ?
+        placeColors.police : placeColors.users
+  }
+
+  const icon = place?.types.includes("user") ?
+    <AntDesign name="user" color={placeColors.users} size={22} /> :
+    place?.types.includes("hospital") ?
+      <FontAwesome5 name="hospital" color={placeColors.hospital} size={22} /> :
+      <MaterialCommunityIcons name="police-station" color={placeColors.police} size={22} />
+
+  console.log(showDetails);
+  return useMemo(() =>
+  (
+    <>
+      <Pressable onPress={() => place?.types?.includes("user") ? handleUserPressed(place) : handlePlacePressed()}
+        // android_ripple={{ color: 'rgba(0, 0, 0, 0.1)' }}
+      >
+        <View style={[styles.container, borderLeft]}>
+          <View style={styles.placeName}>
+            {icon}
+            <Text style={styles.name}>{place?.name}</Text>
+          </View>
+          <View style={[styles.rating, { borderColor: "black" }]}>
+          </View>
+          <Text style={styles.bold}>{place?.types[0]}</Text>
+          <Text style={styles.vicinity}>{place?.vicinity}</Text>
+        </View>
+      </Pressable>
+      {
+        showDetails &&
+        <Modal
+          visible={showDetails}
+          transparent={true}
+          style={styles.details}
+        >
+          <TouchableWithoutFeedback onPress={() => setShowDetails(false)} style={{ flex: 1 }}>
+            <View style={styles.detailsModal}>
+              <View style={styles.modalContent}>
+                <View style={styles.placeName}>
+                  {icon}
+                  <Text style={styles.name}>{place?.name}</Text>
+                </View>
+                <View style={[styles.rating, { borderColor: "black" }]}>
+                  {
+                    place?.rating ?
+                      <>
+                        <Text style={styles.voter}>{place?.rating?.toFixed(1)}</Text>
+                        <GetStars rating={place?.rating} />
+                        <Text style={styles.voter}>({place?.user_ratings_total} ratings)</Text>
+                      </>
+                      :
+                      <Text style={styles.voter}>No Ratings</Text>
+                  }
+                </View>
+                <Text style={styles.bold}>{place?.types[0]}</Text>
+                <Text style={styles.vicinity}>{place?.vicinity}</Text>
+                {
+                  place?.opening_hours &&
+                  <Text style={[openStyle, styles.bold]}>{place?.opening_hours?.open_now ? "Open now" : "Closed"}</Text>
+                }
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+      }
+    </>
+  ), [place, showDetails]
   )
 }
 
-export default PlaceCard;
+export default React.memo(PlaceCard);
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   container: {
     backgroundColor: "#FFFFFF",
     elevation: 3,
@@ -103,11 +138,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 10,
     paddingHorizontal: 12,
-    borderLeftWidth: 3,
   },
   placeName: {
     flexDirection: "row",
     paddingVertical: 2,
+    alignItems : "center",
   },
   name: {
     fontSize: 16,
@@ -115,15 +150,12 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     fontFamily: "Lato-Black"
   },
-  rating: {
-    fontFamily: "Lato-Light"
-  },
   voter: {
     fontFamily: "Lato-Regular"
   },
   icon: {
-    height: 16,
-    width: 16,
+    height: width * 0.04,
+    width: width * 0.04,
     resizeMode: "contain",
     marginTop: 3,
   },
@@ -136,10 +168,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "Lato-Regular"
   },
-  type: {
+  bold: {
     fontFamily: "Lato-Bold"
   },
-  open: {
-    fontFamily: "Lato-Bold"
+  details: {
+    flex: 1,
+  },
+  detailsModal: {
+    justifyContent: "center",
+    alignItems: "center",
+    flex: 1,
+    backgroundColor: 'rgba(128, 128, 128, 0.7)',
+  },
+  modalContent: {
+    width: "96%",
+    justifyContent: "space-evenly",
+    backgroundColor: "#FFFFFF",
+    elevation: 2,
+    borderRadius: 8,
+    padding: 6,
+    marginHorizontal: 8,
   }
 })

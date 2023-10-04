@@ -7,7 +7,6 @@ import rootSaga from "./rootSaga";
 
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
-// import storage from "redux-persist/lib/storage";
 import {
     persistReducer,
     persistStore,
@@ -22,6 +21,13 @@ import {
 const persistConfig = {
     key: "root",
     storage: AsyncStorage,
+    blacklist: [
+        'latLng',
+        'places',
+        'selectedPlace',
+        'messageDraft',
+        'modalVisible',
+    ]
 }
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -34,9 +40,9 @@ const store = configureStore({
         return getDefaultMiddleware({
             immutableCheck: { warnAfter: 128 },
             serializableCheck: {
-            warnAfter: 128 ,
-            ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-          }, thunk: false 
+                warnAfter: 128,
+                ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+            }, thunk: false
         }).prepend(sagaMiddleware)
     }
 })

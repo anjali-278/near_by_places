@@ -1,5 +1,5 @@
 import { StyleSheet, Text, Pressable } from 'react-native';
-import React from 'react';
+import React, {useMemo} from 'react';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { useDispatch, useSelector } from 'react-redux';
 import { getLatlng } from '../modules/map/redux/slices/latlng';
@@ -9,30 +9,33 @@ const Mylocation = () => {
 
   const dispatch = useDispatch();
 
-  const handleLocationPress = () => {
-    dispatch(getLatlng({
-      latitude: location?.coords?.latitude,
-      longitude: location?.coords?.longitude,
-    }));
-    dispatch(clearPlace());
-  }
-
   const location = useSelector(state => state.location.location);
   const currentLocationAddress = useSelector(state => state.locationAddress.address);
 
+  const handleLocationPress = () => {
+    location?.coords?
+    (dispatch(getLatlng({
+      latitude: location?.coords?.latitude,
+      longitude: location?.coords?.longitude,
+    })),
+    dispatch(clearPlace())
+    )
+    : 
+    alert("Location Permission has not been Provided");
+  }
+
   
-  return (
-    <Pressable
+  return useMemo(() =>
+    (<Pressable
       style={styles.header}
-      onPress={handleLocationPress}
+      onPress={() => handleLocationPress()}
     >
       <Entypo name="location" size={32} color="white" />
       <Text style={styles.address}>{currentLocationAddress[0]?.formatted_address || "Your Current Address"}</Text>
-    </Pressable>
-  )
+    </Pressable>),[location, currentLocationAddress])
 }
 
-export default Mylocation
+export default React.memo(Mylocation);
 
 const styles = StyleSheet.create({
   header: {

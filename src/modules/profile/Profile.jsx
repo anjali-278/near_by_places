@@ -1,5 +1,7 @@
 import { StyleSheet, Text, View, Pressable, TextInput, SafeAreaView, ScrollView, Image, Dimensions } from 'react-native';
 import React, { useState } from 'react';
+import Toast from 'react-native-toast-message';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../login/redux/authSlice';
@@ -9,7 +11,6 @@ import Fontisto from 'react-native-vector-icons/Fontisto';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Feather from 'react-native-vector-icons/Feather';
-import Entypo from 'react-native-vector-icons/Entypo';
 
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
@@ -30,7 +31,7 @@ const Profile = () => {
   const [changePassword, setChangePassword] = useState(false);
   const [prevPassword, setPrevPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [imageSource, setImageSource] = useState("")
+  const [imageSource, setImageSource] = useState("");
 
   const handleDobSelect = (date) => {
     dispatch(setDob(`${date.getDate()} - ${date.getMonth() + 1} - ${date.getFullYear()}`));
@@ -41,6 +42,10 @@ const Profile = () => {
     setChangePassword(false);
     setPrevPassword("");
     setNewPassword("");
+    Toast.show({
+      type : "success",
+      text1 : "Password Changed Successfully"
+    })
   }
 
   const handleLogout = async () => {
@@ -56,7 +61,7 @@ const Profile = () => {
   const getImage = async () => {
     const result = await launchImageLibrary({ mediaType: "photo" })
     dispatch(setImageUri(result.assets[0].uri))
-    console.log("url-------------->",result.assets[0].uri)
+    // console.log("url-------------->",result.assets[0].uri)
     setImageSource(result.assets[0].uri)
   }
 
@@ -71,7 +76,7 @@ const Profile = () => {
     setNewPassword("");
   }
 
-  console.log(dob);
+  // console.log(dob);
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={{ paddingBottom: 20, }}>

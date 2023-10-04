@@ -1,123 +1,128 @@
+import React, { createRef } from 'react';
+
 import {
   StyleSheet,
   View,
   Keyboard,
   TouchableWithoutFeedback,
+  Image,
+  Pressable,
 } from 'react-native';
-import Toast from 'react-native-toast-message';
 
-import React, { useState } from 'react';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE, Circle } from 'react-native-maps';
 import { useSelector, useDispatch } from 'react-redux';
 import placeColors from '../constants/placeColor';
-import ModalComponent from './ModalComponent';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+
 import { getLatlng } from '../modules/map/redux/slices/latlng';
+import { clearPlace } from '../modules/map/redux/slices/selectedPlace';
+import { setDraftValue } from '../modules/messages/redux/messageDraftSlice';
+import { showModal } from '../modules/map/redux/slices/modalVisible';
 
 const Mapview = () => {
   const latLng = useSelector(state => state.latLng);
   const places = useSelector(state => state.places.places);
-  const currentLocation = useSelector(state => state.location)
+  const currentLocation = useSelector(state => state.location);
 
-  const [username, setUsername] = useState("UserName");
-  const [message, setMessage] = useState("")
-  const [modalVisible, setModalVisible] = useState(false);
-
-
+  const mapRef = createRef();
   const dispatch = useDispatch();
 
-  const handleCalloutPress = (name) => {
-    setModalVisible(true);
-    setUsername(name);
+  const handleCalloutPress = (receiverData) => {
+    dispatch(showModal());
+
+    dispatch(setDraftValue({
+      receiver_id: receiverData?.id || "receiver_id",
+      receiver_name: receiverData?.name || "name",
+      receiver_location: {
+        latitude: receiverData.lat,
+        longitude: receiverData.lng,
+        address: receiverData.vicinity,
+      }
+    }))
   }
 
-  handleMessageCancel = () => {
-    setModalVisible(false);
-    setUsername("");
-    setMessage("")
+  const handleMyLocationPress = () => {
+    currentLocation?.location?.coords ?
+      (dispatch(getLatlng({
+        latitude: currentLocation?.location?.coords?.latitude,
+        longitude: currentLocation?.location?.coords?.longitude,
+      })),
+        mapRef.current.animateToRegion({
+          latitude: currentLocation?.location?.coords?.latitude,
+          longitude: currentLocation?.location?.coords?.longitude,
+          latitudeDelta: 0.034,
+          longitudeDelta: 0.02,
+        }),
+        dispatch(clearPlace())
+      ) :
+      alert("Please Check Your Location Permission")
   }
 
-  handleMessageSend = () => {
-    if (message) {
-      setModalVisible(false)
-      setUsername("");
-      Toast.show({
-        type: "success",
-        text1: "Sent",
-        text2: `Message sent to ${username} successfully`
-      })
-      setMessage("");
-    }
-    else {
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Please type a Message"
-      })
-    }
-  }
-  
+
   return (
     <>
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
         <View style={styles.mapContainer}>
           <MapView
+            ref={mapRef}
             provider={PROVIDER_GOOGLE}
             style={styles.map}
             region={{
               latitude: latLng?.latitude || 17.387140,
               longitude: latLng?.longitude || 78.491684,
-              latitudeDelta: 0.015,
-              longitudeDelta: 0.0121,
+              latitudeDelta: 0.034,
+              longitudeDelta: 0.02,
             }}
-            // onRegionChange={(newRegion) => (dispatch(getLatlng({newRegion})))}
+            showsUserLocation={true}
+            showsMyLocationButton={false}
           >
-            <Marker
-            coordinate={{
-              latitude : currentLocation?.location?.coords?.latitude,
-              longitude : currentLocation?.location?.coords?.longitude,
-            }}
-            pinColor='yellow'
-            title='You are here'
-            >
-              <MaterialIcons name="my-location" size={32} color="#0074D9"/>
-            </Marker>
+            <Circle
+              key={(latLng?.latitude + latLng?.longitude).toString()}
+              center={{
+                latitude: latLng?.latitude || 17.387140,
+                longitude: latLng?.longitude || 78.491684,
+              }}
+              radius={1500}
+              strokeWidth={1}
+              strokeColor={'#1a66ff'}
+              fillColor={'rgba(230,238,255,0.5)'} />
+
             {places.length ?
               places.map((obj, index) => {
+                const icon = obj?.types.includes("user") ?
+                  <MaterialIcons name="location-history" color={placeColors.users} size={32} /> :
+                  obj?.types.includes("hospital") ?
+                    <FontAwesome5 name="hospital" color={placeColors.hospital} size={24} /> :
+                    <MaterialCommunityIcons name="police-station" color={placeColors.police} size={24} />
+
                 return (
                   <Marker
                     key={String(index)}
                     coordinate={{
-                      latitude: obj?.geometry?.location?.lat,
-                      longitude: obj?.geometry?.location?.lng,
+                      latitude: obj?.lat,
+                      longitude: obj?.lng,
                     }}
                     title={obj?.name}
-                    onCalloutPress={() => { obj?.types.includes("user") && handleCalloutPress(obj?.name || "Username") }}
-                    pinColor={obj?.types.includes("hospital") ?
-                      placeColors.hospital : obj?.types.includes("police") ?
-                        placeColors.police :
-                        obj?.types.includes("user") ?
-                          placeColors.users :
-                          null}
+                    onCalloutPress={() => { obj?.types.includes("user") && handleCalloutPress(obj || {}) }}
                   >
-                    {obj?.types.includes("user") &&
-                      <MaterialIcons name="location-history" color={placeColors.users} size={32}/>
-                    }
+                    {icon}
                   </Marker>
                 )
               }) : null}
           </MapView>
+
+          <View style={styles.locationBox}>
+            <Pressable
+              onPress={handleMyLocationPress}
+            >
+              <MaterialIcons name="my-location" color={"#0074D9"} size={40} />
+            </Pressable>
+          </View>
         </View>
       </TouchableWithoutFeedback>
-      <ModalComponent
-        modalVisible={modalVisible}
-        message={message}
-        setMessage={setMessage}
-        username={username}
-        handleMessageCancel={handleMessageCancel}
-        handleMessageSend={handleMessageSend}
-      />
     </>
   )
 }
@@ -136,4 +141,13 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     zIndex: -1,
   },
+  locationBox: {
+    position: "absolute",
+    bottom: 30,
+    right: 30,
+    backgroundColor: "#FFFFFF",
+    padding: 7,
+    borderRadius: 8,
+    elevation: 4,
+  }
 })

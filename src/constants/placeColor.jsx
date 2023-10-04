@@ -1,6 +1,6 @@
 const placeColors = {
-    hospital : "#6CCD6C",
-    police : "#800000",
+    hospital : "#4C964A",
+    police : "#D37B5D",
     users : "#4169E1",
 }
 

@@ -1,0 +1,11 @@
+id, sender_id, receiver_id, message, sender_location, receiver_location, msg_count, date_time
+id, sender_id, receiver_id, message, sender_location, receiver_location, msg_count, date_time
+id, sender_id, receiver_id, message, sender_location, receiver_location, msg_count, date_time
+id, sender_id, receiver_id, message, sender_location, receiver_location, msg_count, date_time
+id, sender_id, receiver_id, message, sender_location, receiver_location, msg_count, date_time
+id, sender_id, receiver_id, message, sender_location, receiver_location, msg_count, date_time
+id, sender_id, receiver_id, message, sender_location, receiver_location, msg_count, date_time
+id, sender_id, receiver_id, message, sender_location, receiver_location, msg_count, date_time
+id, sender_id, receiver_id, message, sender_location, receiver_location, msg_count, date_time
+id, sender_id, receiver_id, message, sender_location, receiver_location, msg_count, date_time
+id, sender_id, receiver_id, message, sender_location, receiver_location, msg_count, date_time
